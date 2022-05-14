@@ -15,27 +15,16 @@
 
 #include <string.h>
 
-/* This strlcat is convoluted and hasn't been tested yet. */
 size_t
-strlcat(char *dst, const char *src, size_t dstlen)
+strlcat(char *dst, const char *str, size_t dstlen)
 {
-	size_t i;
+	size_t len;
 
-	i = dstlen > 0 ? strlen(dst) : 0;
-	for (;; i++) {
-		if (i >= dstlen) {
-			/*
-			 * If i > len, the destination string was larger than
-			 * len.
-			 */
-			if (i == dstlen)
-				dst[dstlen-1] = '\0';
-			return (i + strlen(src));
-		}
-		dst[i] = *src++;
-		if (*src == '\0')
-			return (i);
-	}
+	len = strlen(dst);
+	if (len >= dstlen)
+		len += strlen(str);
+	else
+		len += strlcpy(dst + len, str, dstlen - len);
 
-	/* NOTREACHED */
+	return len;
 }
