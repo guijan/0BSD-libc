@@ -23,24 +23,32 @@ reallocarr(void *_dst, size_t nmemb, size_t size)
 	void **dst = _dst;
 	void *tmp;
 	size_t result;
+	int errnum;
+	int rval;
+	errnum = errno;
+	rval = 0;
 
 	result = nmemb * size;
 	if (nmemb != 0 && result / nmemb != size) {
 		/*
-		 * NetBSD uses its EOVERFLOW for this, but I'm using the
-		 * standard ERANGE. Note that NetBSD doesn't document what it
-		 * does to errno exactly so this is still valid according to
-		 * their spec.
+		 * NetBSD uses its EOVERFLOW for this, but it's not standard, so
+		 * I'm using ERANGE. NetBSD doesn't document what it does to
+		 * errno exactly, so this is still valid according to the man
+		 * page.
 		 */
-		errno = ERANGE;
-		return -1;
+		rval = ERANGE;
+		goto end;
 	}
 	if (result == 0)
 		result = 1;
 
-	if ((tmp = realloc(*dst, result)) == NULL)
-		return -1;
+	if ((tmp = realloc(*dst, result)) == NULL) {
+		rval = errno;
+		goto end;
+	}
 
 	*dst = tmp;
-	return 0;
+end:
+	errno = errnum;
+	return rval;
 }
