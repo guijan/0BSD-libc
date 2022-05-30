@@ -23,10 +23,6 @@ reallocarr(void *_dst, size_t nmemb, size_t size)
 	void **dst = _dst;
 	void *tmp;
 	size_t result;
-	int errnum;
-	int rval;
-	errnum = errno;
-	rval = 0;
 
 	result = nmemb * size;
 	if (nmemb != 0 && result / nmemb != size) {
@@ -36,19 +32,14 @@ reallocarr(void *_dst, size_t nmemb, size_t size)
 		 * errno exactly, so this is still valid according to the man
 		 * page.
 		 */
-		rval = ERANGE;
-		goto end;
+		return (errno = ERANGE);
 	}
 	if (result == 0)
 		result = 1;
 
-	if ((tmp = realloc(*dst, result)) == NULL) {
-		rval = errno;
-		goto end;
-	}
+	if ((tmp = realloc(*dst, result)) == NULL)
+		return errno;
 
 	*dst = tmp;
-end:
-	errno = errnum;
-	return rval;
+	return 0;
 }
